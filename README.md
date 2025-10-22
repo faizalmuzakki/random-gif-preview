@@ -42,26 +42,68 @@ npm run build
 npm run preview
 ```
 
+## Setup: Giphy API Key
+
+This project uses the **Giphy API** to generate truly random GIFs every time!
+
+### Get Your Free API Key
+
+1. Go to [Giphy Developers](https://developers.giphy.com/dashboard/)
+2. Create an account or log in
+3. Click "Create an App"
+4. Choose "API" (not SDK)
+5. Fill in the app name and description
+6. Copy your API key
+
+### Add API Key to Your Project
+
+1. Copy `.env.example` to `.env`:
+   ```bash
+   cp .env.example .env
+   ```
+
+2. Edit `.env` and add your API key:
+   ```env
+   GIPHY_API_KEY=your_actual_api_key_here
+   ```
+
+3. **For Cloudflare Pages**: Add the environment variable in your dashboard:
+   - Go to Settings → Environment Variables
+   - Add `GIPHY_API_KEY` with your API key value
+   - Save and redeploy
+
+### Without API Key
+
+Don't worry! If you don't add an API key, the app will use a fallback array of pre-selected GIFs. It will still work, just with a smaller selection.
+
 ## Customization
 
-### Adding Your Own GIFs
+### Changing the Fallback GIFs
 
-Edit `src/routes/+page.server.ts` and modify the `GIF_URLS` array:
+If you want to customize the fallback GIFs (used when no API key is present), edit `src/routes/+page.server.ts`:
 
 ```typescript
-const GIF_URLS = [
+const FALLBACK_GIFS = [
 	'https://your-gif-url-1.gif',
 	'https://your-gif-url-2.gif',
-	'https://your-gif-url-3.gif',
-	// Add as many as you want!
+	// Add more!
 ];
 ```
 
-### Where to Get GIFs
+### Filtering by Tags/Categories (Optional)
 
-- **Giphy**: Right-click any GIF → "Copy link" → Use the direct `.gif` URL
-- **Tenor**: Similar process
-- **Host your own**: Upload GIFs to your static folder or CDN
+You can customize the Giphy API call to fetch GIFs with specific tags. Edit `src/routes/+page.server.ts`:
+
+```typescript
+// Current: completely random
+`https://api.giphy.com/v1/gifs/random?api_key=${env.GIPHY_API_KEY}&rating=g`
+
+// With tag (e.g., only cat GIFs)
+`https://api.giphy.com/v1/gifs/random?api_key=${env.GIPHY_API_KEY}&tag=cats&rating=g`
+
+// With multiple tags
+`https://api.giphy.com/v1/gifs/random?api_key=${env.GIPHY_API_KEY}&tag=funny,animals&rating=g`
+```
 
 ### Updating Meta Tags
 
@@ -103,27 +145,79 @@ To test the actual preview functionality:
 
 ## Deployment
 
-This project can be deployed to:
+This project is configured for **Cloudflare Pages** deployment.
 
-### Vercel (Recommended)
+### Cloudflare Pages (Recommended)
 
-```bash
-npm install -g vercel
-vercel
-```
-
-### Netlify
+#### Option 1: Using Wrangler CLI
 
 ```bash
+# Install wrangler globally if you haven't
+npm install -g wrangler
+
+# Login to Cloudflare
+wrangler login
+
+# Build the project
 npm run build
-# Upload the .svelte-kit/output directory
+
+# Deploy to Cloudflare Pages
+wrangler pages deploy .svelte-kit/cloudflare
+
+# After first deployment, add the environment variable via dashboard:
+# 1. Go to Cloudflare Dashboard → Pages → Your Project
+# 2. Settings → Environment variables
+# 3. Add GIPHY_API_KEY with your API key
+# 4. Redeploy with: wrangler pages deploy .svelte-kit/cloudflare
 ```
+
+#### Option 2: Using Cloudflare Dashboard
+
+1. Push your code to GitHub
+2. Go to [Cloudflare Dashboard](https://dash.cloudflare.com) → Pages
+3. Click "Create a project" → "Connect to Git"
+4. Select your repository
+5. Configure build settings:
+   - **Build command**: `npm run build`
+   - **Build output directory**: `.svelte-kit/cloudflare`
+   - **Framework preset**: SvelteKit
+6. **IMPORTANT: Add Environment Variable**
+   - Scroll down to "Environment variables" section
+   - Click "Add variable"
+   - Name: `GIPHY_API_KEY`
+   - Value: Your Giphy API key from [developers.giphy.com](https://developers.giphy.com/dashboard/)
+   - Apply to: Both "Production" and "Preview"
+7. Click "Save and Deploy"
+
+#### Option 3: Direct Upload
+
+```bash
+# Build the project
+npm run build
+
+# The build output will be in .svelte-kit/cloudflare
+# You can upload this directly via Cloudflare Dashboard → Pages → Upload assets
+```
+
+### Adding Environment Variable to Existing Cloudflare Pages Project
+
+If you've already deployed and need to add the API key:
+
+1. Go to [Cloudflare Dashboard](https://dash.cloudflare.com) → Pages
+2. Select your project
+3. Go to **Settings** → **Environment variables**
+4. Click **Add variable**:
+   - Variable name: `GIPHY_API_KEY`
+   - Value: Your Giphy API key
+   - Environment: Select both "Production" and "Preview"
+5. Click **Save**
+6. Go to **Deployments** tab → Click "Retry deployment" or push a new commit to trigger a redeploy
+
+**Important**: After deployment, update the `og:url` and `twitter:url` meta tags in `+page.svelte` with your actual Cloudflare Pages domain (e.g., `https://random-gif-preview.pages.dev`)!
 
 ### Other Platforms
 
-This is a standard SvelteKit app with SSR. Follow the [SvelteKit deployment guide](https://kit.svelte.dev/docs/adapters) for your platform.
-
-**Important**: Make sure to update the `og:url` and `twitter:url` meta tags in `+page.svelte` with your actual domain after deployment!
+While optimized for Cloudflare, you can deploy to other platforms by changing the adapter in `svelte.config.js`. See [SvelteKit adapters](https://kit.svelte.dev/docs/adapters).
 
 ## How Social Media Bots Work
 

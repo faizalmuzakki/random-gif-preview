@@ -17,7 +17,7 @@
 
 	<!-- Twitter -->
 	<meta property="twitter:card" content="summary_large_image" />
-	<meta property="twitter:url" content="https://yoursite.com/" />
+	<meta property="twitter:url" content="https://random-gif.solork.dev/" />
 	<meta property="twitter:title" content="Random GIF Preview!" />
 	<meta
 		property="twitter:description"
